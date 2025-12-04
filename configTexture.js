@@ -1,39 +1,39 @@
-/*创建2D纹理（修复潜在的异步加载问题）*/
-function configureTexture(image, isNormalMap = false) {
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+/*******************生成立方体纹理对象*******************************/
+function configureCubeMap(program) {
+    gl.activeTexture(gl.TEXTURE0);
+
+    const cubeMap = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+    gl.uniform1i(gl.getUniformLocation(program, "cubeSampler"), 0);
+
+    const faces = [
+        ["./skybox/right.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+        ["./skybox/left.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+        ["./skybox/top.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+        ["./skybox/bottom.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+        ["./skybox/front.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+        ["./skybox/back.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]
+    ];
     
-    // 初始化空白纹理（避免加载延迟导致的纹理未就绪问题）
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255])); // 临时紫色
-    
-    // 翻转Y轴（关键：图片坐标系与WebGL纹理坐标系对齐）
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    
-    // 纹理环绕方式（立方体每个面独立显示，用CLAMP_TO_EDGE避免边缘重复）
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    
-    // 过滤方式
-    const minFilter = isNormalMap ? gl.LINEAR : gl.LINEAR_MIPMAP_LINEAR;
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    
-    // 加载图片并更新纹理
-    if (image) {
-        image.onload = function() {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            if (!isNormalMap) gl.generateMipmap(gl.TEXTURE_2D);
-        };
-        // 强制触发加载（如果图片已缓存）
-        if (image.complete) image.onload();
-    } else {
-        console.error("未提供纹理图片");
+    for (let i = 0; i < 6; i++) {
+        const face = faces[i][1];
+        const image = new Image();
+        image.src = faces[i][0];
+        image.onload = (function(cubeMap, face, image) {
+            return function() {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+                gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            };
+        })(cubeMap, face, image);
     }
-    
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
 }
+
 /*TODO1:创建一般2D颜色纹理对象并加载图片（支持基础纹理和凹凸纹理）*/
 function configureTexture(image, isNormalMap = false) {
     const texture = gl.createTexture();
