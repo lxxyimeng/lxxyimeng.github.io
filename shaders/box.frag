@@ -103,11 +103,10 @@ void main() {
     vec3 lighting = ambient + (1.0 - shadow) * (diffuse + specular);
     vec3 resultColor = lighting * textureColor;
 
-    // 6. 半透明效果（示例：对特定位置的物体应用透明度）
-    // 判断是否为中间立方体（根据位置范围）
-    bool isTransparentObject = (FragPos.x > -2.0 && FragPos.x < 2.0) &&
-                              (FragPos.y > -2.0 && FragPos.y < 2.0) &&
-                              (FragPos.z > -2.0 && FragPos.z < 2.0);
+    // 6. 半透明效果（对中心立方体应用）
+    bool isTransparentObject = (FragPos.x > -1.0 && FragPos.x < 1.0) &&
+                              (FragPos.y > -1.0 && FragPos.y < 1.0) &&
+                              (FragPos.z > -1.0 && FragPos.z < 1.0);
     float alpha = isTransparentObject ? transparency : 1.0;
 
     FragColor = vec4(resultColor, alpha);
