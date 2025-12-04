@@ -6,6 +6,7 @@ function configureCubeMap(program) {
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // 修复立方体贴图边缘环绕
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
@@ -25,6 +26,7 @@ function configureCubeMap(program) {
         const face = faces[i][1];
         const image = new Image();
         image.src = faces[i][0];
+        // 闭包保存当前纹理和面
         image.onload = (function(cubeMap, face, image) {
             return function() {
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
